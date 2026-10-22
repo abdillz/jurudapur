@@ -1,0 +1,21 @@
+Prototipe Juru Dapur (situs statis, tanpa server)
+
+Isi: satu file index.html. Semua data contoh sudah ada di dalamnya.
+Butuh internet saat dibuka untuk memuat font Google dan pustaka QR.
+
+Cara menerbitkan (pilih satu):
+
+1. Netlify Drop (paling cepat)
+   Buka app.netlify.com/drop, seret folder juru-dapur-prototipe ke halaman itu.
+   Tautan publik langsung jadi dan bisa diganti namanya di pengaturan situs.
+
+2. GitHub Pages
+   Buat repositori publik, unggah index.html, lalu Settings > Pages > Deploy from a branch > main.
+
+3. Vercel
+   Impor repositori atau seret folder ke vercel.com/new. Tidak perlu pengaturan build.
+
+Tanpa internet atau untuk uji lokal: klik dua kali index.html.
+
+Setelah terbit, tempel tautan barunya di proposal subbab 2.2
+(ganti tautan artifact yang lama).

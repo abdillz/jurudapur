@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Prototipe Juru Dapur: pembinaan harian tenaga dapur MBG.">
+<title>Juru Dapur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+/* Layout: bilah atas berisi empat meja kerja (HP pekerja, papan kepala dapur, bursa tenaga, pemeriksa kartu); setiap meja dibangun dari token sage di bawah */
+:root {
+  --bg: #F2F5F0;
+  --surface: #FFFFFF;
+  --surface-2: #E8EFE7;
+  --ink: #1D2921;
+  --muted: #5A695F;
+  --line: #D2DCD2;
+  --accent: #4E6E58;
+  --accent-strong: #2F4636;
+  --accent-mid: #7A9A82;
+  --accent-soft: #DCE7DD;
+  --on-accent: #FFFFFF;
+  --warn: #8F5D0E;
+  --warn-bg: #FBEED3;
+  --warn-line: #E6BF73;
+  --bad: #A13E32;
+  --bad-bg: #F8E1DC;
+  --bezel: #1B211D;
+  --screen: #F7F9F6;
+  --shadow: 0 1px 2px rgba(29, 41, 33, .06), 0 10px 28px rgba(29, 41, 33, .09);
+  --f-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --f-body: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101612; --surface: #18201B; --surface-2: #212B24; --ink: #E3EBE4; --muted: #9BAAA0; --line: #2E3A31;
+    --accent: #8DB39A; --accent-strong: #B9D4C1; --accent-mid: #6C927A; --accent-soft: #233429; --on-accent: #0E1510;
+    --warn: #EBB85E; --warn-bg: #362B15; --warn-line: #6B5422; --bad: #EF9C90; --bad-bg: #3B201C;
+    --bezel: #050806; --screen: #141B16; --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101612; --surface: #18201B; --surface-2: #212B24; --ink: #E3EBE4; --muted: #9BAAA0; --line: #2E3A31;
+  --accent: #8DB39A; --accent-strong: #B9D4C1; --accent-mid: #6C927A; --accent-soft: #233429; --on-accent: #0E1510;
+  --warn: #EBB85E; --warn-bg: #362B15; --warn-line: #6B5422; --bad: #EF9C90; --bad-bg: #3B201C;
+  --bezel: #050806; --screen: #141B16; --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent-mid); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* bilah atas */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1240px; margin: 0 auto; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(140deg, var(--accent-strong), var(--accent-mid)); display: grid; place-items: center; color: var(--on-accent); }
+.brand b { font-family: var(--f-display); font-size: 19px; letter-spacing: -.02em; }
+.brand small { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.2; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; scrollbar-width: none; }
+.tabs button { border: 0; background: transparent; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent-strong); }
+.tabs button:hover { color: var(--ink); }
+.proto-tag { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px dashed var(--accent-mid); color: var(--accent); white-space: nowrap; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.view-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.view-head h1 { font-size: clamp(24px, 3.2vw, 32px); }
+.view-head p { margin: 4px 0 0; color: var(--muted); max-width: 64ch; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; min-width: 0; }
+.panel h3 { font-size: 17px; margin-bottom: 4px; }
+.panel .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { border-color: var(--accent-mid); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn-sm { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.p-ok { background: var(--accent-soft); color: var(--accent-strong); }
+.p-warn { background: var(--warn-bg); color: var(--warn); }
+.p-bad { background: var(--bad-bg); color: var(--bad); }
+.p-idle { background: var(--surface-2); color: var(--muted); }
+
+/* ===== meja pekerja ===== */
+.worker-grid { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 28px; align-items: start; }
+.guide { display: grid; gap: 16px; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; counter-increment: s; }
+.steps li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; display: grid; place-items: center; font-size: 13px; }
+.steps li.done::before { content: "✓"; background: var(--accent); color: var(--on-accent); }
+.steps b { display: block; font-size: 14.5px; }
+.steps span { color: var(--muted); font-size: 13.5px; }
+.persona-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.persona { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px; text-align: left; display: grid; gap: 2px; }
+.persona[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.persona b { font-size: 14px; }
+.persona span { font-size: 12px; color: var(--muted); }
+.logic { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.logic li { display: flex; gap: 10px; align-items: baseline; font-size: 13.5px; }
+.logic .k { flex: none; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+
+.phone { width: 390px; max-width: 100%; height: 800px; background: var(--bezel); border-radius: 46px; padding: 12px; box-shadow: var(--shadow); position: sticky; top: calc(76px + env(safe-area-inset-top, 0px)); }
+.screen { width: 100%; height: 100%; background: var(--screen); border-radius: 36px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+.statusbar { display: flex; justify-content: space-between; padding: 12px 26px 6px; font-size: 12.5px; font-weight: 700; flex: none; }
+.notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 92px; height: 24px; background: var(--bezel); border-radius: 14px; }
+.sc { flex: 1; overflow-y: auto; padding: 8px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.navbar { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); background: var(--surface); padding: 6px 8px 14px; }
+.navbar button { border: 0; background: transparent; display: grid; justify-items: center; gap: 2px; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 6px; border-radius: 10px; }
+.navbar button[aria-current="true"] { color: var(--accent-strong); }
+.navbar svg { width: 22px; height: 22px; }
+
+.hello h2 { font-size: 24px; }
+.hello p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); }
+.big-cta { border: 0; border-radius: 22px; padding: 18px; text-align: left; background: linear-gradient(140deg, var(--accent-strong), var(--accent) 60%, var(--accent-mid)); color: var(--on-accent); display: grid; gap: 4px; box-shadow: 0 8px 20px rgba(47, 70, 54, .25); }
+.big-cta b { font-family: var(--f-display); font-size: 22px; line-height: 1.15; }
+.big-cta span { font-size: 13px; opacity: .9; }
+.big-cta .go { justify-self: end; margin-top: 6px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.2); display: grid; place-items: center; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; }
+.card h4 { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 700; }
+.done-card { border-radius: 22px; padding: 16px; display: grid; gap: 6px; }
+.done-card.ok { background: var(--accent-soft); color: var(--accent-strong); }
+.done-card.warn { background: var(--warn-bg); color: var(--warn); }
+.done-card b { font-family: var(--f-display); font-size: 20px; }
+.done-card span { font-size: 13px; color: var(--ink); }
+.menu-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; }
+.menu-list li { display: flex; gap: 8px; align-items: center; }
+.menu-list li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mid); }
+.streak-dots { display: flex; gap: 5px; margin-top: 8px; }
+.streak-dots i { flex: 1; height: 8px; border-radius: 4px; background: var(--accent); }
+.streak-dots i.off { background: var(--surface-2); }
+.row-link { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; }
+.row-link .ico { flex: none; width: 42px; height: 42px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-strong); display: grid; place-items: center; font-weight: 800; font-family: var(--f-display); }
+.row-link .ico.warn { background: var(--warn-bg); color: var(--warn); }
+.row-link b { display: block; font-size: 14.5px; line-height: 1.3; }
+.row-link small { color: var(--muted); font-size: 12.5px; }
+.row-link .chev { margin-left: auto; color: var(--muted); }
+
+.q-top { display: flex; align-items: center; gap: 10px; }
+.q-top .x { border: 0; background: var(--surface-2); width: 34px; height: 34px; border-radius: 50%; font-size: 18px; line-height: 1; flex: none; }
+.bar { flex: 1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
+.why-chip { align-self: flex-start; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); padding: 4px 10px; border-radius: 999px; }
+.illus { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; display: grid; place-items: center; padding: 10px; }
+.illus svg { width: 100%; max-width: 280px; height: 150px; }
+.q-text { font-family: var(--f-display); font-size: 21px; line-height: 1.25; font-weight: 700; }
+.opts { display: grid; gap: 10px; }
+.opt { border: 2px solid var(--line); background: var(--surface); border-radius: 16px; padding: 14px 16px; text-align: left; font-weight: 600; font-size: 15.5px; min-height: 58px; }
+.opt:hover { border-color: var(--accent-mid); }
+.opt.right { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+.opt:disabled { cursor: default; }
+.feedback { border-radius: 18px; padding: 14px; display: grid; gap: 8px; }
+.feedback.ok { background: var(--accent-soft); }
+.feedback.no { background: var(--bad-bg); }
+.feedback b { font-family: var(--f-display); font-size: 18px; }
+.feedback.ok b { color: var(--accent-strong); }
+.feedback.no b { color: var(--bad); }
+.feedback p { margin: 0; font-size: 14px; }
+.full { width: 100%; justify-content: center; padding: 14px; font-size: 15.5px; border-radius: 14px; }
+
+.player { background: #0E1310; border-radius: 20px; overflow: hidden; color: #E9F0EA; }
+.player .stage { aspect-ratio: 16 / 11; display: grid; place-items: center; padding: 18px; background: radial-gradient(circle at 30% 20%, #2C4334, #0E1310 70%); position: relative; }
+.player .stage svg { width: 70%; height: auto; }
+.player .cap { position: absolute; left: 12px; right: 12px; bottom: 12px; background: rgba(0,0,0,.6); padding: 8px 10px; border-radius: 10px; font-size: 13.5px; line-height: 1.35; }
+.player .ctl { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-size: 12.5px; }
+.player .track { flex: 1; height: 5px; background: rgba(255,255,255,.2); border-radius: 3px; overflow: hidden; }
+.player .track i { display: block; height: 100%; width: 0; background: #A9C2AE; }
+
+.result-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.result-list li { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; font-size: 13.5px; }
+.result-list .mk { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+.mk.y { background: var(--accent); color: var(--on-accent); }
+.mk.n { background: var(--warn-bg); color: var(--warn); }
+
+.mod-prog { display: flex; align-items: baseline; gap: 8px; }
+.mod-prog b { font-family: var(--f-display); font-size: 30px; }
+.mod-list { display: grid; gap: 8px; }
+.slide { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: grid; gap: 10px; }
+.slide .n { font-family: var(--f-display); font-size: 44px; font-weight: 800; color: var(--accent-mid); line-height: 1; }
+.slide p { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.4; }
+.dots { display: flex; gap: 6px; justify-content: center; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--accent); width: 22px; border-radius: 4px; }
+
+.idcard { border-radius: 22px; padding: 16px; color: #fff; background: linear-gradient(150deg, #2F4636, #4E6E58 55%, #7A9A82); display: grid; gap: 12px; box-shadow: 0 10px 24px rgba(47, 70, 54, .3); position: relative; overflow: hidden; }
+.idcard::after { content: ""; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,.07); }
+.idcard .hd { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+.idcard .who { display: flex; gap: 12px; align-items: center; }
+.avatar { width: 54px; height: 54px; border-radius: 14px; background: #DCE7DD; color: #2F4636; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 20px; flex: none; }
+.idcard .who b { font-family: var(--f-display); font-size: 20px; display: block; line-height: 1.2; }
+.idcard .who span { font-size: 13px; opacity: .9; }
+.idcard .ft { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+.qr { background: #fff; padding: 8px; border-radius: 12px; line-height: 0; flex: none; }
+.qr svg { width: 104px; height: 104px; display: block; }
+.mods-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.mods-grid span { aspect-ratio: 1; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--surface-2); color: var(--muted); }
+.mods-grid span.on { background: var(--accent); color: var(--on-accent); }
+.mods-grid span.due { background: var(--warn-bg); color: var(--warn); outline: 1.5px solid var(--warn-line); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.prac { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.prac li { display: flex; gap: 8px; }
+.prac li::before { content: "✓"; color: var(--accent); font-weight: 800; }
+.prac small { color: var(--muted); display: block; font-size: 12px; }
+
+.login { justify-content: center; text-align: center; gap: 18px; }
+.login .logo { width: 72px; height: 72px; border-radius: 22px; margin: 0 auto; background: linear-gradient(140deg, var(--accent-strong), var(--accent-mid)); display: grid; place-items: center; color: var(--on-accent); }
+.login h2 { font-size: 28px; }
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 4px; margin: 0 auto; }
+.seg button { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.scanbox { border: 2px dashed var(--accent-mid); border-radius: 22px; padding: 18px; display: grid; gap: 8px; justify-items: center; background: var(--surface); }
+.scanbox .frame { width: 120px; height: 120px; border-radius: 16px; position: relative; display: grid; place-items: center; color: var(--accent); }
+.scanbox .frame::after { content: ""; position: absolute; left: 8px; right: 8px; height: 3px; background: var(--accent); top: 10px; border-radius: 2px; opacity: 0; }
+.scanning .frame::after { opacity: 1; animation: scan 1s ease-in-out infinite alternate; }
+@keyframes scan { to { top: 106px; } }
+.or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12.5px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.field { display: grid; gap: 6px; text-align: left; }
+.field label { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.field input, .field select { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 11px 12px; width: 100%; }
+
+/* ===== papan kesiapan ===== */
+.kpis { display: grid; grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.kpi .v { font-family: var(--f-display); font-size: 34px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi .l { color: var(--muted); font-size: 13px; }
+.kpi.hero { background: linear-gradient(140deg, var(--accent-strong), var(--accent) 70%); color: var(--on-accent); border: 0; }
+.kpi.hero .v { font-size: 52px; }
+.kpi.hero .l { color: var(--on-accent); opacity: .85; }
+.kpi .meter { height: 8px; border-radius: 4px; background: rgba(255,255,255,.25); overflow: hidden; margin-top: 6px; position: relative; }
+.kpi .meter i { display: block; height: 100%; background: var(--on-accent); }
+.kpi .meter em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--on-accent); opacity: .6; }
+.kpi.warn .v { color: var(--warn); }
+.board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+.board > .stack { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.stack { display: grid; gap: 14px; min-width: 0; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.fchip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.fchip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.fchip .c { font-variant-numeric: tabular-nums; opacity: .75; margin-left: 4px; }
+.tbl-wrap { overflow-x: auto; margin: 0 -18px -18px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th:first-child, td:first-child { padding-left: 18px; }
+th:last-child, td:last-child { padding-right: 18px; }
+tr.flash td { animation: flash 2.4s ease-out; }
+@keyframes flash { 0%, 40% { background: var(--accent-soft); } 100% { background: transparent; } }
+td .nm { font-weight: 600; white-space: nowrap; }
+td .rl { color: var(--muted); font-size: 12.5px; }
+.minibar { display: inline-block; width: 60px; height: 6px; border-radius: 3px; background: var(--surface-2); vertical-align: middle; margin-right: 6px; overflow: hidden; }
+.minibar i { display: block; height: 100%; background: var(--accent-mid); }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--f-body); }
+.topic { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 13.5px; margin-bottom: 10px; }
+.topic .tb { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+.topic .tb i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--accent-mid), var(--accent)); }
+.visit { display: grid; gap: 8px; }
+.visit .when { font-family: var(--f-display); font-size: 20px; font-weight: 700; }
+.score { display: flex; gap: 12px; align-items: center; }
+.score .from, .score .to { font-family: var(--f-display); font-size: 28px; font-weight: 700; }
+.score .from { color: var(--muted); }
+.score .to { color: var(--accent); }
+
+/* modal rekap */
+.modal { position: fixed; inset: 0; background: rgba(10, 15, 12, .55); z-index: 50; display: grid; place-items: start center; overflow-y: auto; padding-block: calc(24px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.modal-in { width: 100%; max-width: 820px; display: grid; gap: 10px; }
+.modal-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; color: #fff; font-size: 13.5px; }
+.paper { background: #fff; color: #1d1d1d; border-radius: 6px; padding: 36px 40px; box-shadow: 0 20px 50px rgba(0,0,0,.35); font-size: 13px; }
+.paper .kop { display: flex; justify-content: space-between; gap: 16px; border-bottom: 3px double #4E6E58; padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.paper h2 { font-size: 20px; color: #2F4636; }
+.paper .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.paper .meta div { background: #EEF3EE; border-radius: 6px; padding: 8px 10px; }
+.paper .meta b { display: block; font-size: 18px; color: #2F4636; }
+.paper table { font-size: 12px; }
+.paper th { background: #DCE7DD; color: #2F4636; }
+.paper td, .paper th { border-bottom: 1px solid #D9E0D9; }
+.paper .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; text-align: center; }
+.paper .sign .ln { height: 60px; border-bottom: 1px solid #333; margin: 6px 20px; }
+.paper .note { color: #666; font-size: 11.5px; margin-top: 14px; }
+.paper-scroll { overflow-x: auto; }
+
+/* ===== bank tenaga ===== */
+.bank-head { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 16px; }
+.filters .field { min-width: 180px; flex: 1; }
+.cands { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.cand { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+.cand .top-row { display: flex; gap: 12px; align-items: center; }
+.cand .avatar { width: 46px; height: 46px; font-size: 16px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-strong); }
+.cand b { font-size: 15.5px; display: block; }
+.cand .loc { color: var(--muted); font-size: 12.5px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 8px; background: var(--surface-2); color: var(--ink); }
+.stat-line { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; }
+.stat-line b { color: var(--ink); font-size: 13px; display: inline; }
+.confirm { background: var(--accent-soft); border-radius: 12px; padding: 12px; display: grid; gap: 8px; font-size: 13.5px; }
+.confirm .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sent { color: var(--accent-strong); font-weight: 700; font-size: 13.5px; display: flex; gap: 6px; align-items: center; }
+.empty { padding: 30px; text-align: center; color: var(--muted); grid-column: 1 / -1; }
+
+/* ===== verifikasi ===== */
+.verify { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.vres { display: grid; gap: 14px; }
+.vhead { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.vhead .avatar { width: 64px; height: 64px; font-size: 22px; }
+.vhead h2 { font-size: 24px; }
+.vgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.vgrid .kpi .v { font-size: 26px; }
+.honest { font-size: 12.5px; color: var(--muted); border-left: 3px solid var(--accent-mid); padding-left: 10px; margin: 0; }
+
+.foot { color: var(--muted); font-size: 12.5px; text-align: center; margin-top: 30px; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--surface); padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 60; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+
+@media (max-width: 1020px) {
+  .board > .stack { grid-template-columns: 1fr 1fr; }
+  .board > .stack > .visit { grid-column: 1 / -1; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi.hero { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .tabs { order: 3; flex-basis: 100%; }
+  .board > .stack { grid-template-columns: 1fr; }
+}
+@media (max-width: 880px) {
+  .worker-grid { grid-template-columns: 1fr; }
+  .phone { position: static; margin: 0 auto; order: -1; }
+  .verify { grid-template-columns: 1fr; }
+  .bank-head { grid-template-columns: 1fr; }
+}
+@media (max-width: 460px) {
+  .phone { width: 100%; height: 760px; padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .screen { border-radius: 20px; border: 1px solid var(--line); }
+  .notch { display: none; }
+  .persona-row { grid-template-columns: 1fr; }
+  .vgrid { grid-template-columns: 1fr; }
+  .paper { padding: 20px; }
+  .brand small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+html { background: var(--bg); }
+body { margin: 0; }
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  'use strict';
+  var app = document.getElementById('app');
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function initials(n) { return n.split(' ').slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); }
+  function rp(n) { return 'Rp' + n.toLocaleString('id-ID'); }
+
+  // ---------- konten ----------
+  var MODULES = [
+    { n: 1, t: 'Kebersihan diri dan cuci tangan', r: 'Semua', min: 6, pts: ['Cuci tangan pakai sabun dan air mengalir minimal 20 detik.', 'Wajib cuci tangan setelah dari toilet, memegang HP, uang, sampah, atau bahan mentah.', 'Kuku pendek, tanpa cincin dan jam tangan selama bekerja.'] },
+    { n: 2, t: 'Pakaian kerja, APD, dan kondisi sehat', r: 'Semua', min: 5, pts: ['Pakai celemek, penutup kepala, dan masker sebelum masuk area produksi.', 'Diare, muntah, demam, atau luka terbuka di tangan wajib dilaporkan ke ketua regu.', 'Pekerja yang sakit dipindah ke tugas tanpa kontak dengan makanan.'] },
+    { n: 3, t: 'Penerimaan dan pemeriksaan bahan', r: 'Tim persiapan', min: 7, pts: ['Periksa bau, warna, tekstur, dan suhu bahan saat datang.', 'Ayam berlendir, berbau asam, atau berwarna kehijauan ditolak.', 'Catat bahan yang ditolak dan laporkan ke kepala dapur.'] },
+    { n: 4, t: 'Penyimpanan, urutan pakai, mentah dan matang', r: 'Persiapan, gudang', min: 6, pts: ['Bahan yang datang lebih dulu dipakai lebih dulu.', 'Daging dan ayam mentah di rak paling bawah agar cairannya tidak menetes.', 'Makanan matang selalu di atas bahan mentah dan dalam wadah tertutup.'] },
+    { n: 5, t: 'Mencegah kontaminasi silang', r: 'Persiapan, juru masak', min: 6, pts: ['Pisahkan talenan dan pisau untuk bahan mentah dan makanan matang, ikuti kode warna dapur.', 'Alat bekas bahan mentah dicuci sabun dan disanitasi sebelum dipakai lagi.', 'Cuci tangan setiap berpindah dari bahan mentah ke makanan matang.'] },
+    { n: 6, t: 'Memasak sampai matang sempurna', r: 'Juru masak', min: 7, pts: ['Cek bagian paling tebal, bukan hanya warna kulit luar.', 'Cairan daging harus bening dan tidak ada bagian berwarna merah muda.', 'Pakai termometer masak sesuai SOP dapur bila tersedia.'] },
+    { n: 7, t: 'Waktu tunggu dan batas aman', r: 'Juru masak, pemorsi', min: 5, pts: ['Tulis jam selesai masak di setiap wadah lauk.', 'Makanan matang disantap paling lama 4 jam setelah selesai dimasak.', 'Lauk yang melewati batas waktu tidak dibagikan.'] },
+    { n: 8, t: 'Pemorsian dan pengemasan higienis', r: 'Pemorsi, pengemas', min: 6, pts: ['Pakai sarung tangan atau penjepit, jangan menyentuh makanan matang dengan tangan.', 'Tunggu uap berkurang sebelum ompreng ditutup agar tidak berembun.', 'Ompreng yang sudah terisi langsung ditutup dan diberi label jam.'] },
+    { n: 9, t: 'Distribusi, kendaraan, dan ompreng', r: 'Sopir, distribusi', min: 5, pts: ['Bak kendaraan bersih, kering, dan tertutup.', 'Ompreng disusun rapat agar tidak terbuka di jalan.', 'Catat jam berangkat dan jam tiba di sekolah.'] },
+    { n: 10, t: 'Pencucian dan sanitasi alat', r: 'Bagian cuci', min: 6, pts: ['Buang sisa makanan, cuci dengan sabun, bilas, sanitasi, lalu tiriskan.', 'Jangan mengeringkan ompreng dengan lap yang sama berulang kali.', 'Simpan ompreng bersih terbalik di rak tertutup.'] },
+    { n: 11, t: 'Sampah, sisa makanan, dan hama', r: 'Semua', min: 5, pts: ['Sisa makanan ditaruh di wadah tertutup, jauh dari area masak.', 'Sampah diangkut keluar dapur setiap hari.', 'Laporkan tanda tikus, kecoak, atau lalat ke kepala dapur.'] },
+    { n: 12, t: 'Langkah saat ada dugaan keracunan', r: 'Semua, kepala dapur', min: 8, pts: ['Segera lapor kepala SPPG bila ada laporan siswa mual, muntah, atau pusing.', 'Simpan sampel makanan hari itu, jangan dibuang.', 'Kepala SPPG menghubungi puskesmas dan dinas kesehatan setempat.'] }
+  ];
+
+  var Q = {
+    kontaminasi: { mod: 5, topic: 'Kontaminasi silang', ill: 'boards', q: 'Talenan baru dipakai memotong ayam mentah. Boleh langsung dipakai untuk mengiris tomat lalapan?', opts: ['Boleh, cukup dibilas air', 'Tidak. Pakai talenan khusus makanan matang, atau cuci sabun dan sanitasi dulu'], ok: 1, why: 'Bakteri dari ayam mentah menempel di talenan dan pindah ke tomat yang tidak dimasak lagi.' },
+    cucitangan: { mod: 1, topic: 'Cuci tangan', ill: 'phone', q: 'Kamu baru membalas pesan di HP. Apa yang dilakukan sebelum memegang bahan lagi?', opts: ['Langsung lanjut, tangan masih terlihat bersih', 'Cuci tangan pakai sabun dan air mengalir minimal 20 detik', 'Cukup lap tangan ke celemek'], ok: 1, why: 'Layar HP termasuk benda yang paling banyak kuman di dapur. Tangan yang terlihat bersih belum tentu bersih.' },
+    matang: { mod: 6, topic: 'Kematangan ayam', ill: 'chicken', q: 'Bagaimana memastikan ayam goreng sudah matang sampai ke dalam?', opts: ['Kulit luarnya sudah cokelat keemasan', 'Tusuk bagian paling tebal: cairan bening dan tidak ada bagian merah muda', 'Sudah digoreng lima menit'], ok: 1, why: 'Kulit bisa cokelat lebih dulu, padahal bagian dekat tulang masih mentah.' },
+    waktu: { mod: 7, topic: 'Waktu tunggu lauk', ill: 'clock', q: 'Ayam selesai dimasak pukul 05.00. Paling lambat pukul berapa harus sudah disantap siswa?', opts: ['09.00', '12.00', '14.00'], ok: 0, why: 'Batas aman makanan matang adalah 4 jam setelah selesai dimasak. Lewat dari itu, kuman berkembang cepat.' },
+    ompreng: { mod: 8, topic: 'Menutup ompreng panas', ill: 'ompreng', q: 'Nasi dan lauk di ompreng masih mengepul panas. Boleh langsung ditutup?', opts: ['Boleh, supaya tetap hangat sampai sekolah', 'Tunggu uap berkurang dulu, baru ditutup rapat'], ok: 1, why: 'Uap yang terperangkap menjadi embun, membuat makanan lembap dan cepat basi.' },
+    sehat: { mod: 2, topic: 'Kondisi sehat', ill: 'sick', q: 'Pagi ini kamu diare. Apa yang sebaiknya dilakukan?', opts: ['Tetap memasak seperti biasa setelah minum obat', 'Lapor ketua regu dan tidak memegang makanan hari ini'], ok: 1, why: 'Kuman penyebab diare mudah berpindah ke makanan lewat tangan.' },
+    simpan: { mod: 4, topic: 'Penyimpanan bahan', ill: 'fridge', q: 'Di kulkas, ayam mentah disimpan di rak mana?', opts: ['Rak paling atas supaya cepat dingin', 'Rak paling bawah, di bawah sayur dan makanan matang'], ok: 1, why: 'Cairan ayam mentah bisa menetes dan mencemari makanan yang ada di bawahnya.' },
+    penerimaan: { mod: 3, topic: 'Pemeriksaan bahan', ill: 'chicken', q: 'Ayam yang datang pagi ini berlendir dan berbau asam. Apa tindakanmu?', opts: ['Cuci bersih lalu tetap dimasak', 'Tolak, catat, dan laporkan ke kepala dapur'], ok: 1, why: 'Lendir dan bau asam adalah tanda ayam sudah rusak. Dicuci tidak membuatnya aman.' },
+    cuci: { mod: 10, topic: 'Urutan cuci', ill: 'ompreng', q: 'Urutan mencuci ompreng yang benar adalah...', opts: ['Bilas air, lap, simpan', 'Buang sisa, cuci sabun, bilas, sanitasi, tiriskan', 'Rendam semalaman lalu keringkan'], ok: 1, why: 'Sisa lemak harus dibuang dan dicuci sabun dulu agar sanitasi bisa bekerja.' }
+  };
+
+  var MENU = ['Nasi putih', 'Ayam goreng bumbu kuning', 'Tumis buncis wortel', 'Tempe goreng', 'Jeruk'];
+
+  var NAMES = [
+    ['Sri Wahyuni', 'Siti Aminah', 'Dewi Kurniawati', 'Yuli Astuti', 'Endang Susilowati', 'Tutik Handayani', 'Suparmi', 'Nining Rahayu', 'Kasiyem', 'Lina Marlina', 'Sumarni', 'Puji Lestari'],
+    ['Joko Santoso', 'Agus Prasetyo', 'Bambang Riyadi', 'Heru Susanto', 'Sugeng Widodo', 'Slamet Riyanto', 'Teguh Wibowo', 'Darmaji'],
+    ['Rina Lestari', 'Wati Ningsih', 'Ani Rohmah', 'Nur Hidayah', 'Indah Permatasari', 'Erna Yuliana', 'Yayuk Utami', 'Ratna Dewi', 'Lilik Mahmudah', 'Umi Kalsum'],
+    ['Budi Hartono', 'Rudi Setiawan', 'Wahyu Saputra', 'Fajar Nugroho', 'Supriadi', 'Dodik Kurniawan'],
+    ['Hadi Purnomo', 'Arif Rahman', 'Imam Syafii', 'Mulyono']
+  ];
+  var ROLES = ['Tim persiapan', 'Juru masak', 'Pemorsi dan pengemas', 'Pencucian', 'Distribusi'];
+
+  var DEMO = {
+    'JD-MLG-0142': { short: 'Bu Sri', phone: '0812-3345-7781', streak: 12, mods: [1, 2, 3, 4, 5, 11], due: [4], dueIn: 3,
+      prac: [['Cuci tangan enam langkah', '9 Okt 2026'], ['Memisahkan talenan mentah dan matang', '9 Okt 2026'], ['Memeriksa ayam saat penerimaan', '16 Okt 2026']],
+      plan: [['kontaminasi', 'Menu hari ini: ayam'], ['simpan', 'Sesuai peranmu: tim persiapan'], ['cucitangan', 'Topik yang sering terlewat']] },
+    'JD-MLG-0157': { short: 'Pak Joko', phone: '0813-5521-0934', streak: 5, mods: [1, 2, 5, 6, 7, 12], due: [2], dueIn: 1,
+      prac: [['Mengecek kematangan ayam', '10 Okt 2026'], ['Mencatat jam selesai masak', '10 Okt 2026']],
+      plan: [['matang', 'Menu hari ini: ayam goreng'], ['waktu', 'Sesuai peranmu: juru masak'], ['sehat', 'Penyegaran: 14 hari belum dicek']] },
+    'JD-MLG-0163': { short: 'Mbak Rina', phone: '0857-0412-6650', streak: 8, mods: [1, 2, 7, 8, 11], due: [1], dueIn: 2,
+      prac: [['Memorsi dengan penjepit', '11 Okt 2026'], ['Menutup ompreng setelah uap turun', '11 Okt 2026']],
+      plan: [['ompreng', 'Sesuai peranmu: pemorsi'], ['waktu', 'Menu hari ini: lauk ayam'], ['cucitangan', 'Topik yang sering terlewat']] }
+  };
+
+  // daftar 40 pekerja SPPG Contoh 01
+  var ROSTER = [];
+  (function () {
+    var special = { 'Sri Wahyuni': 'JD-MLG-0142', 'Joko Santoso': 'JD-MLG-0157', 'Rina Lestari': 'JD-MLG-0163' };
+    var notes = { 'Agus Prasetyo': ['dampingi', 'Waktu tunggu lauk'], 'Wati Ningsih': ['dampingi', 'Menutup ompreng panas'], 'Siti Aminah': ['catatan', 'Kontaminasi silang'], 'Heru Susanto': ['catatan', 'Kematangan ayam'], 'Fajar Nugroho': ['catatan', 'Urutan cuci'] };
+    var k = 0;
+    NAMES.forEach(function (list, ri) {
+      list.forEach(function (nm) {
+        var id = special[nm] || ('JD-MLG-' + String(201 + k).padStart(4, '0'));
+        var d = DEMO[id];
+        var st = d ? 'belum' : (notes[nm] ? notes[nm][0] : 'siap');
+        var modsN = d ? d.mods.length : 4 + ((k * 5) % 8);
+        ROSTER.push({ id: id, name: nm, role: ROLES[ri], status: st, note: notes[nm] ? notes[nm][1] : '', streak: d ? d.streak : 3 + ((k * 7) % 19), modsN: modsN, att: d ? 15 : 13 + (k % 4), obs: 68 + ((k * 11) % 27), demo: !!d });
+        k++;
+      });
+    });
+  })();
+
+  var BANK = [
+    { id: 'JD-MLG-0311', name: 'Mariyam Ulfa', kec: 'Lowokwaru', roles: ['Tim persiapan', 'Pemorsi'], mods: 12, prac: 6, src: 'Kohort CSR Oktober 2026', avail: 'Siap mulai Senin' },
+    { id: 'JD-MLG-0318', name: 'Gunawan Eko', kec: 'Sukun', roles: ['Juru masak'], mods: 11, prac: 5, src: 'Mantan juru masak SPPG Contoh 03', avail: 'Siap mulai besok' },
+    { id: 'JD-MLG-0322', name: 'Sulastri', kec: 'Kedungkandang', roles: ['Pencucian', 'Tim persiapan'], mods: 10, prac: 4, src: 'Kohort CSR Oktober 2026', avail: 'Siap mulai Senin' },
+    { id: 'JD-MLG-0327', name: 'Rizky Maulana', kec: 'Blimbing', roles: ['Distribusi'], mods: 9, prac: 3, src: 'Warga sekitar SPPG Contoh 05', avail: 'Siap mulai besok' },
+    { id: 'JD-MLG-0333', name: 'Siti Khotimah', kec: 'Lowokwaru', roles: ['Pemorsi', 'Pencucian'], mods: 12, prac: 5, src: 'Kohort CSR Oktober 2026', avail: 'Siap mulai Senin' },
+    { id: 'JD-MLG-0340', name: 'Ponirin', kec: 'Klojen', roles: ['Juru masak', 'Tim persiapan'], mods: 12, prac: 7, src: 'Mantan ketua regu SPPG Contoh 02', avail: 'Siap mulai 1 November' },
+    { id: 'JD-MLG-0346', name: 'Dwi Rahayu', kec: 'Sukun', roles: ['Tim persiapan'], mods: 8, prac: 3, src: 'Warga sekitar SPPG Contoh 04', avail: 'Siap mulai Senin' },
+    { id: 'JD-MLG-0351', name: 'Yusuf Hidayat', kec: 'Kedungkandang', roles: ['Pencucian', 'Distribusi'], mods: 9, prac: 4, src: 'Kohort CSR Oktober 2026', avail: 'Siap mulai besok' },
+    { id: 'JD-MLG-0358', name: 'Ninik Suryani', kec: 'Blimbing', roles: ['Pemorsi'], mods: 11, prac: 5, src: 'Mantan pemorsi SPPG Contoh 06', avail: 'Siap mulai Senin' }
+  ];
+  var KEC = ['Blimbing', 'Kedungkandang', 'Klojen', 'Lowokwaru', 'Sukun'];
+
+  var TREND = [71, 73, 72, 75, 74, 77, 76, 79, 78, 80, 82, 81, 83, 82, 84, 85, 84, 86, 87, 86, 88, 87, 89, 88, 90, 89, 91, 90, 92];
+  var TOPICS = { 'Kontaminasi silang': 14, 'Waktu tunggu lauk': 11, 'Cuci tangan': 9, 'Menutup ompreng panas': 6, 'Penyimpanan bahan': 4 };
+
+  var L = {
+    id: { hello: 'Selamat pagi', start: 'Mulai Cek Siap Shift', startSub: '3 soal, sekitar 2 menit, sebelum memegang bahan', menu: 'Menu hari ini', streak: 'hari berturut-turut siap', today: 'Modul hari ini', nav: ['Beranda', 'Modul', 'Kartu'], due: 'Penyegaran jatuh tempo' },
+    jw: { hello: 'Sugeng enjang', start: 'Wiwiti Cek Siap Shift', startSub: '3 pitakon, kira-kira 2 menit, sadurunge nyekel bahan', menu: 'Menu dina iki', streak: 'dina urut siap', today: 'Modul dina iki', nav: ['Ngarep', 'Modul', 'Kartu'], due: 'Wektune nyegerake' }
+  };
+
+  // ---------- state ----------
+  var S = {
+    tab: 'pekerja', lang: 'id', persona: 'JD-MLG-0142', loggedIn: false, scanning: false, screen: 'home',
+    check: null, video: null, modOpen: null, slide: 0, quizPick: null,
+    workers: {}, filter: 'semua', flashId: null, rekap: false,
+    bank: { kec: 'semua', role: 'semua', full: false, confirm: null, sent: {} },
+    verifyId: 'JD-MLG-0142', toast: ''
+  };
+  Object.keys(DEMO).forEach(function (id) {
+    var d = DEMO[id];
+    S.workers[id] = { mods: d.mods.slice(), due: d.due.slice(), streak: d.streak, checked: false, result: null };
+  });
+
+  function rosterById(id) { for (var i = 0; i < ROSTER.length; i++) if (ROSTER[i].id === id) return ROSTER[i]; return null; }
+  function bankById(id) { for (var i = 0; i < BANK.length; i++) if (BANK[i].id === id) return BANK[i]; return null; }
+  function me() { return rosterById(S.persona); }
+  function T(k) { return L[S.lang][k]; }
+
+  function readiness() {
+    var ok = ROSTER.filter(function (w) { return w.status === 'siap' || w.status === 'catatan' || w.status === 'didampingi'; }).length;
+    return { ok: ok, total: ROSTER.length, pct: Math.round(ok / ROSTER.length * 100) };
+  }
+  function counts() {
+    var c = { semua: ROSTER.length, siap: 0, dampingi: 0, belum: 0 };
+    ROSTER.forEach(function (w) {
+      if (w.status === 'belum') c.belum++;
+      else if (w.status === 'dampingi') c.dampingi++;
+      else c.siap++;
+    });
+    return c;
+  }
+
+  // ---------- ikon dan ilustrasi ----------
+  var IC = {
+    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+    book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 7h6"/></svg>',
+    card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M6 16c.6-1.4 1.6-2 2.5-2s1.9.6 2.5 2"/><path d="M14 10h4M14 13h3"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    chef: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.9A4 4 0 0 1 7.5 6a5 5 0 0 1 9 0A4 4 0 0 1 18 13.9V20H6z"/><path d="M6 17h12"/></svg>',
+    qr: '<svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h7v-4M17 21v.01"/></svg>',
+    download: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+    check: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>'
+  };
+
+  function illus(k) {
+    var s = 'style="fill:var(--accent-soft)"', a = 'style="fill:var(--accent)"', m = 'style="fill:var(--accent-mid)"', w = 'style="fill:var(--surface)"', ln = 'style="stroke:var(--accent-strong)"', wr = 'style="fill:var(--bad-bg)"', wrs = 'style="stroke:var(--bad)"';
+    var o = {
+      boards: '<svg viewBox="0 0 280 150"><rect x="20" y="30" width="100" height="90" rx="14" ' + wr + '/><rect x="20" y="30" width="100" height="90" rx="14" fill="none" stroke-width="3" ' + wrs + '/><path d="M55 90c-8-14 6-36 24-30 12 4 14 20 2 26l-6 14-8-2 2-10c-6 4-11 5-14 2z" style="fill:#E8B4A6"/><text x="70" y="142" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--bad)">AYAM MENTAH</text><path d="M134 75h22" stroke-width="3" stroke-linecap="round" fill="none" ' + ln + '/><path d="M150 68l8 7-8 7" stroke-width="3" fill="none" stroke-linecap="round" ' + ln + '/><rect x="164" y="30" width="100" height="90" rx="14" ' + s + '/><rect x="164" y="30" width="100" height="90" rx="14" fill="none" stroke-width="3" ' + ln + '/><circle cx="214" cy="75" r="24" style="fill:#D9534F"/><path d="M206 52c4 4 12 4 16 0" stroke-width="3" fill="none" style="stroke:#3E7A4A"/><text x="214" y="142" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent-strong)">TOMAT LALAPAN</text></svg>',
+      phone: '<svg viewBox="0 0 280 150"><rect x="96" y="12" width="70" height="126" rx="12" ' + a + '/><rect x="102" y="24" width="58" height="96" rx="4" ' + w + '/><rect x="110" y="34" width="40" height="10" rx="5" ' + s + '/><rect x="116" y="50" width="34" height="10" rx="5" ' + m + '/><rect x="110" y="66" width="40" height="10" rx="5" ' + s + '/><circle cx="196" cy="40" r="6" ' + m + '/><circle cx="214" cy="62" r="4" ' + m + '/><circle cx="200" cy="84" r="8" ' + m + '/><circle cx="70" cy="50" r="5" ' + m + '/><circle cx="58" cy="78" r="7" ' + m + '/><path d="M180 112c16-6 34-2 46 8" stroke-width="3" fill="none" stroke-linecap="round" ' + ln + '/><path d="M180 124c16-6 34-2 46 8" stroke-width="3" fill="none" stroke-linecap="round" ' + ln + '/></svg>',
+      chicken: '<svg viewBox="0 0 280 150"><path d="M70 104c-22-28 8-78 50-64 28 9 34 46 6 60l-14 30-18-4 4-22c-12 9-22 10-28 0z" style="fill:#C98B3F"/><path d="M102 82c4-10 16-12 22-6" stroke-width="3" fill="none" style="stroke:#F2D3A6"/><rect x="176" y="20" width="22" height="96" rx="11" ' + w + ' stroke-width="3" ' + ln + '/><rect x="182" y="50" width="10" height="60" rx="5" ' + a + '/><circle cx="187" cy="120" r="16" ' + a + '/><path d="M206 40h14M206 58h10M206 76h14M206 94h10" stroke-width="3" stroke-linecap="round" ' + ln + '/></svg>',
+      clock: '<svg viewBox="0 0 280 150"><circle cx="90" cy="75" r="56" ' + s + '/><circle cx="90" cy="75" r="56" fill="none" stroke-width="4" ' + ln + '/><path d="M90 75V40M90 75l-26 0" stroke-width="5" stroke-linecap="round" ' + ln + '/><circle cx="90" cy="75" r="5" ' + a + '/><text x="90" y="146" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--accent-strong)">05.00 matang</text><path d="M160 75h40" stroke-width="3" stroke-dasharray="6 6" ' + ln + '/><circle cx="232" cy="75" r="32" ' + w + ' stroke-width="4" style="stroke:var(--accent-mid)"/><text x="232" y="85" text-anchor="middle" font-size="30" font-weight="800" style="fill:var(--accent-mid)">?</text></svg>',
+      ompreng: '<svg viewBox="0 0 280 150"><rect x="40" y="62" width="200" height="70" rx="12" style="fill:#B9C2BC"/><rect x="50" y="72" width="80" height="50" rx="6" style="fill:#F4F1E8"/><rect x="138" y="72" width="44" height="22" rx="5" style="fill:#C98B3F"/><rect x="138" y="100" width="44" height="22" rx="5" style="fill:#7FA65A"/><rect x="190" y="72" width="40" height="50" rx="6" style="fill:#E9A23B"/><path d="M80 52c-8-10 8-16 0-26M110 52c-8-10 8-16 0-26M160 52c-8-10 8-16 0-26M200 52c-8-10 8-16 0-26" stroke-width="4" fill="none" stroke-linecap="round" style="stroke:var(--accent-mid)"/></svg>',
+      fridge: '<svg viewBox="0 0 280 150"><rect x="80" y="6" width="120" height="138" rx="12" ' + w + ' stroke-width="4" ' + ln + '/><path d="M80 52h120M80 98h120" stroke-width="3" ' + ln + '/><rect x="96" y="26" width="40" height="20" rx="4" ' + s + '/><text x="214" y="34" font-size="12" font-weight="700" style="fill:var(--accent-strong)">Matang</text><rect x="96" y="72" width="30" height="20" rx="4" style="fill:#7FA65A"/><rect x="132" y="76" width="24" height="16" rx="4" style="fill:#E9A23B"/><text x="214" y="82" font-size="12" font-weight="700" style="fill:var(--accent-strong)">Sayur</text><rect x="96" y="112" width="60" height="22" rx="4" style="fill:#E8B4A6"/><text x="214" y="128" font-size="12" font-weight="700" style="fill:var(--bad)">? Mentah</text></svg>',
+      sick: '<svg viewBox="0 0 280 150"><circle cx="110" cy="62" r="34" ' + s + '/><circle cx="98" cy="56" r="4" ' + a + '/><circle cx="122" cy="56" r="4" ' + a + '/><path d="M98 78c8-6 16-6 24 0" stroke-width="3" fill="none" stroke-linecap="round" ' + ln + '/><path d="M80 108c8 26 52 26 60 0" ' + m + '/><rect x="176" y="40" width="70" height="80" rx="14" ' + wr + '/><path d="M211 58v28M211 96v4" stroke-width="7" stroke-linecap="round" ' + wrs + '/></svg>'
+    };
+    return o[k] || '<svg viewBox="0 0 280 150"><circle cx="140" cy="75" r="50" ' + s + '/><text x="140" y="88" text-anchor="middle" font-size="40" font-weight="800" style="fill:var(--accent)">' + esc(k) + '</text></svg>';
+  }
+
+  function qrSvg(text, dark) {
+    try {
+      if (typeof qrcode !== 'function') throw 0;
+      var q = qrcode(0, 'M'); q.addData(text); q.make();
+      var n = q.getModuleCount(), p = '';
+      for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (q.isDark(r, c)) p += 'M' + c + ' ' + r + 'h1v1h-1z';
+      return '<svg viewBox="0 0 ' + n + ' ' + n + '" shape-rendering="crispEdges" aria-label="Kode QR ' + esc(text) + '"><path d="' + p + '" fill="' + (dark || '#1D2921') + '"/></svg>';
+    } catch (e) {
+      var out = '', seed = 7;
+      for (var y = 0; y < 21; y++) for (var x = 0; x < 21; x++) { seed = (seed * 9301 + 49297) % 233280; if (seed / 233280 > .5) out += 'M' + x + ' ' + y + 'h1v1h-1z'; }
+      return '<svg viewBox="0 0 21 21"><path d="' + out + '" fill="#1D2921"/></svg>';
+    }
+  }
+
+  // ---------- render ----------
+  function render() {
+    var h = header();
+    if (S.tab === 'pekerja') h += viewWorker();
+    else if (S.tab === 'papan') h += viewBoard();
+    else if (S.tab === 'bank') h += viewBank();
+    else h += viewVerify();
+    if (S.rekap) h += rekapModal();
+    if (S.toast) h += '<div class="toast" role="status">' + esc(S.toast) + '</div>';
+    app.innerHTML = h;
+    if (S.flashId) { var r = document.getElementById('row-' + S.flashId); if (r) { r.classList.add('flash'); r.scrollIntoView({ block: 'center', behavior: 'smooth' }); } S.flashId = null; }
+  }
+
+  function header() {
+    var tabs = [['pekerja', 'Aplikasi Pekerja'], ['papan', 'Papan Kesiapan'], ['bank', 'Bank Tenaga Terlatih'], ['kartu', 'Verifikasi Kartu']];
+    return '<header class="top"><div class="top-in"><div class="brand"><div class="brand-mark">' + IC.chef + '</div><div><b>Juru Dapur</b><small>Pembinaan harian tenaga dapur MBG</small></div></div>' +
+      '<nav class="tabs" role="tablist" aria-label="Bagian prototipe">' + tabs.map(function (t) {
+        return '<button role="tab" aria-selected="' + (S.tab === t[0]) + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>';
+      }).join('') + '</nav><span class="proto-tag">Prototipe, data contoh</span></div></header>';
+  }
+
+  // ===== meja pekerja =====
+  function viewWorker() {
+    var w = S.workers[S.persona], d = DEMO[S.persona], r = me();
+    var stepDone = [S.loggedIn, !!w.checked, !!w.checked && S.tab === 'pekerja' && S.visitedBoard];
+    var guide = '<div class="guide">' +
+      '<div class="view-head" style="margin:0"><div><h1>Aplikasi Pekerja</h1><p>Aplikasi web ringan untuk HP Android murah. Pekerja membuka aplikasi lewat QR di pintu dapur, menjawab tiga soal sebelum shift, lalu belajar modul mikro di waktu istirahat.</p></div></div>' +
+      '<div class="panel"><div class="eyebrow">Coba sebagai</div><div class="persona-row" style="margin-top:8px">' +
+      Object.keys(DEMO).map(function (id) {
+        var rr = rosterById(id);
+        return '<button class="persona" aria-pressed="' + (S.persona === id) + '" data-a="persona" data-v="' + id + '"><b>' + esc(DEMO[id].short) + '</b><span>' + esc(rr.role) + '</span></button>';
+      }).join('') + '</div><p class="sub" style="margin:10px 0 0">Setiap peran mendapat soal yang berbeda. Ganti pekerja kapan saja.</p></div>' +
+      '<div class="panel"><div class="eyebrow">Alur demo</div><ol class="steps" style="margin-top:10px">' +
+      '<li class="' + (S.loggedIn ? 'done' : '') + '"><div><b>Pindai QR kartu</b><span>Masuk tanpa kata sandi, cocok untuk pekerja yang jarang memakai aplikasi.</span></div></li>' +
+      '<li class="' + (w.checked ? 'done' : '') + '"><div><b>Jawab Cek Siap Shift</b><span>Coba pilih jawaban salah untuk melihat video penguatan 60 detik.</span></div></li>' +
+      '<li class="' + (S.visitedBoard && w.checked ? 'done' : '') + '"><div><b>Lihat hasilnya di Papan Kesiapan</b><span>Status pekerja langsung masuk ke dasbor kepala dapur.</span></div></li>' +
+      '<li class="' + (S.cardSeen ? 'done' : '') + '"><div><b>Buka Kartu Kompetensi</b><span>Bukti modul lulus dan praktik terverifikasi, dibawa saat pindah dapur.</span></div></li>' +
+      '</ol></div>' +
+      '<div class="panel"><div class="eyebrow">Cara sistem memilih tiga soal</div><ul class="logic" style="margin-top:10px">' +
+      '<li><span class="k">Soal 1</span><span>Topik dari menu hari ini (ayam, berarti kontaminasi silang atau kematangan).</span></li>' +
+      '<li><span class="k">Soal 2</span><span>Topik sesuai peran pekerja di dapur.</span></li>' +
+      '<li><span class="k">Soal 3</span><span>Topik yang paling sering salah atau sudah lama tidak dicek.</span></li>' +
+      '<li><span class="k">Hasil</span><span>Semua benar: siap. Satu salah: siap dengan catatan. Dua atau lebih salah: didampingi ketua regu sebelum memegang bahan.</span></li>' +
+      '</ul></div></div>';
+    return '<main class="wrap"><div class="worker-grid">' + guide + phone() + '</div>' + foot() + '</main>';
+  }
+
+  function phone() {
+    var body;
+    if (!S.loggedIn) body = scrLogin();
+    else if (S.screen === 'check') body = scrCheck();
+    else if (S.screen === 'video') body = scrVideo();
+    else if (S.screen === 'result') body = scrResult();
+    else if (S.screen === 'modules') body = scrModules();
+    else if (S.screen === 'module') body = scrModule();
+    else if (S.screen === 'card') body = scrCard();
+    else body = scrHome();
+    var nav = '';
+    if (S.loggedIn && ['home', 'modules', 'card'].indexOf(S.screen) > -1) {
+      var n = T('nav');
+      nav = '<nav class="navbar" aria-label="Menu aplikasi">' +
+        '<button data-a="scr" data-v="home" aria-current="' + (S.screen === 'home') + '">' + IC.home + n[0] + '</button>' +
+        '<button data-a="scr" data-v="modules" aria-current="' + (S.screen === 'modules') + '">' + IC.book + n[1] + '</button>' +
+        '<button data-a="scr" data-v="card" aria-current="' + (S.screen === 'card') + '">' + IC.card + n[2] + '</button></nav>';
+    }
+    return '<div class="phone" aria-label="Tampilan HP pekerja"><div class="screen"><div class="notch"></div><div class="statusbar"><span class="mono">04.31</span><span>4G ▮▮▮</span></div>' + body + nav + '</div></div>';
+  }
+
+  function scrLogin() {
+    var d = DEMO[S.persona];
+    return '<div class="sc login"><div class="logo">' + IC.chef.replace('width="20" height="20"', 'width="38" height="38"') + '</div><div><h2>Juru Dapur</h2><p style="margin:4px 0 0;color:var(--muted);font-size:14px">SPPG Contoh 01, Lowokwaru</p></div>' +
+      '<div class="seg" role="group" aria-label="Bahasa"><button data-a="lang" data-v="id" aria-pressed="' + (S.lang === 'id') + '">Indonesia</button><button data-a="lang" data-v="jw" aria-pressed="' + (S.lang === 'jw') + '">Jawa</button></div>' +
+      '<div class="scanbox ' + (S.scanning ? 'scanning' : '') + '"><div class="frame">' + IC.qr + '</div><b>' + (S.scanning ? 'Memindai kartu...' : 'Arahkan kamera ke QR kartu') + '</b>' +
+      '<button class="btn btn-primary full" data-a="scan"' + (S.scanning ? ' disabled' : '') + '>Pindai QR Kartu</button></div>' +
+      '<div class="or">atau</div><div class="field"><label for="hp">Nomor HP</label><input id="hp" inputmode="tel" value="' + esc(d.phone) + '"></div>' +
+      '<button class="btn full" data-a="login">Masuk dengan nomor HP</button></div>';
+  }
+
+  function scrHome() {
+    var w = S.workers[S.persona], d = DEMO[S.persona], r = me();
+    var cta;
+    if (!w.checked) {
+      cta = '<button class="big-cta" data-a="startcheck"><b>' + T('start') + '</b><span>' + T('startSub') + '</span><span class="go">' + IC.arrow + '</span></button>';
+    } else {
+      var ok = w.result !== 'dampingi';
+      cta = '<div class="done-card ' + (ok ? 'ok' : 'warn') + '"><span class="eyebrow" style="color:inherit">Cek Siap Shift hari ini</span><b>' +
+        (w.result === 'siap' ? 'Kamu siap shift' : w.result === 'catatan' ? 'Siap, dengan catatan' : 'Temui ketua regu dulu') + '</b><span>' +
+        (ok ? 'Hasil sudah terkirim ke Papan Kesiapan. Selamat bekerja.' : 'Ketua regu akan mendampingi sebentar sebelum kamu memegang bahan.') + '</span></div>';
+    }
+    var mod = MODULES[(Q[d.plan[0][0]].mod) - 1];
+    var dueMod = w.due.length ? MODULES[w.due[0] - 1] : null;
+    var dots = '';
+    for (var i = 0; i < 14; i++) dots += '<i class="' + (i < Math.min(w.streak, 14) ? '' : 'off') + '"></i>';
+    return '<div class="sc"><div class="hello"><p>' + T('hello') + ',</p><h2>' + esc(d.short) + '</h2><p style="margin-top:6px"><span class="chip">' + esc(r.role) + '</span> <span class="mono" style="margin-left:6px">Kamis, 22 Okt · Shift 04.30</span></p></div>' +
+      cta +
+      '<div class="card"><h4>' + T('menu') + '</h4><ul class="menu-list">' + MENU.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ul></div>' +
+      '<div class="card"><div style="display:flex;align-items:baseline;gap:8px"><b style="font-family:var(--f-display);font-size:30px" class="num">' + w.streak + '</b><span style="color:var(--muted);font-size:13.5px">' + T('streak') + '</span></div><div class="streak-dots">' + dots + '</div></div>' +
+      '<button class="row-link" data-a="openmod" data-v="' + mod.n + '"><span class="ico">' + mod.n + '</span><span><small>' + T('today') + '</small><b>' + esc(mod.t) + '</b><small>' + mod.min + ' menit · gambar dan suara</small></span><span class="chev">›</span></button>' +
+      (dueMod ? '<button class="row-link" data-a="openmod" data-v="' + dueMod.n + '"><span class="ico warn">' + dueMod.n + '</span><span><small>' + T('due') + '</small><b>' + esc(dueMod.t) + '</b><small>Jatuh tempo ' + d.dueIn + ' hari lagi</small></span><span class="chev">›</span></button>' : '') +
+      '</div>';
+  }
+
+  function startCheck() {
+    S.check = { plan: DEMO[S.persona].plan, i: 0, picked: null, wrong: [], retry: false, log: [] };
+    S.screen = 'check';
+  }
+
+  function scrCheck() {
+    var c = S.check, item = c.plan[c.i], q = Q[item[0]];
+    var h = '<div class="sc"><div class="q-top"><button class="x" data-a="quitcheck" aria-label="Tutup">×</button><div class="bar"><i style="width:' + ((c.i + (c.picked !== null ? 1 : 0)) / 3 * 100) + '%"></i></div><span class="mono" style="font-size:13px">' + (c.i + 1) + '/3</span></div>' +
+      '<span class="why-chip">Kenapa soal ini: ' + esc(item[1]) + '</span>' +
+      '<div class="illus">' + illus(q.ill) + '</div><div class="q-text">' + esc(q.q) + '</div>';
+    h += '<div class="opts">' + q.opts.map(function (o, i) {
+      var cls = '';
+      if (c.picked !== null) { if (i === q.ok) cls = 'right'; else if (i === c.picked) cls = 'wrong'; }
+      return '<button class="opt ' + cls + '" data-a="answer" data-v="' + i + '"' + (c.picked !== null ? ' disabled' : '') + '>' + esc(o) + '</button>';
+    }).join('') + '</div>';
+    if (c.picked !== null) {
+      var right = c.picked === q.ok;
+      if (right) {
+        h += '<div class="feedback ok"><b>' + (c.retry ? 'Sekarang sudah tepat' : 'Benar') + '</b><p>' + esc(q.why) + '</p><button class="btn btn-primary full" data-a="next">' + (c.i < 2 ? 'Soal berikutnya' : 'Lihat hasil') + '</button></div>';
+      } else {
+        h += '<div class="feedback no"><b>Belum tepat</b><p>' + esc(q.why) + '</p><button class="btn btn-primary full" data-a="video">Tonton video 60 detik</button></div>';
+      }
+    }
+    return h + '</div>';
+  }
+
+  function scrVideo() {
+    var q = Q[S.check.plan[S.check.i][0]], mod = MODULES[q.mod - 1];
+    return '<div class="sc"><div class="q-top"><span class="eyebrow">Video penguatan · Modul ' + mod.n + '</span></div>' +
+      '<div class="player"><div class="stage">' + illus(q.ill) + '<div class="cap" id="vcap">' + esc(mod.pts[0]) + '</div></div>' +
+      '<div class="ctl"><span id="vplay">▶</span><div class="track"><i id="vbar"></i></div><span class="mono" id="vtime">0:00 / 1:00</span></div></div>' +
+      '<div class="card"><h4>' + esc(mod.t) + '</h4><ul class="menu-list">' + mod.pts.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul></div>' +
+      '<button class="btn full" data-a="skipvideo" id="vskip">Percepat video (demo)</button>' +
+      '<button class="btn btn-primary full" data-a="retry" id="vdone" hidden>Coba lagi soalnya</button></div>';
+  }
+
+  function runVideo() {
+    stopVideo();
+    var mod = MODULES[Q[S.check.plan[S.check.i][0]].mod - 1], t = 0;
+    S.video = setInterval(function () {
+      t += 1; tick(t, mod);
+      if (t >= 60) stopVideo();
+    }, 1000);
+  }
+  function tick(t, mod) {
+    var bar = document.getElementById('vbar'); if (!bar) { stopVideo(); return; }
+    bar.style.width = (t / 60 * 100) + '%';
+    document.getElementById('vtime').textContent = '0:' + String(Math.min(t, 59)).padStart(2, '0') + ' / 1:00';
+    if (t >= 60) document.getElementById('vtime').textContent = '1:00 / 1:00';
+    document.getElementById('vcap').textContent = mod.pts[Math.min(2, Math.floor(t / 20))];
+    if (t >= 60) { document.getElementById('vdone').hidden = false; document.getElementById('vskip').hidden = true; document.getElementById('vplay').textContent = '✓'; }
+  }
+  function stopVideo() { if (S.video) { clearInterval(S.video); S.video = null; } }
+
+  function finishCheck() {
+    var c = S.check, w = S.workers[S.persona], r = me();
+    var wrong = c.wrong.length;
+    var res = wrong === 0 ? 'siap' : wrong === 1 ? 'catatan' : 'dampingi';
+    w.checked = true; w.result = res;
+    if (res !== 'dampingi') w.streak += 1; else w.streak = 0;
+    r.status = res; r.streak = w.streak;
+    r.note = wrong ? c.wrong.map(function (k) { return Q[k].topic; }).join(', ') : '';
+    c.wrong.forEach(function (k) { TOPICS[Q[k].topic] = (TOPICS[Q[k].topic] || 0) + 1; });
+    S.screen = 'result';
+  }
+
+  function scrResult() {
+    var c = S.check, w = S.workers[S.persona];
+    var title = w.result === 'siap' ? 'Kamu siap shift' : w.result === 'catatan' ? 'Siap, dengan catatan' : 'Temui ketua regu dulu';
+    var ok = w.result !== 'dampingi';
+    return '<div class="sc"><div class="done-card ' + (ok ? 'ok' : 'warn') + '" style="margin-top:8px"><span class="eyebrow" style="color:inherit">Hasil Cek Siap Shift</span><b style="font-size:26px">' + title + '</b><span>' +
+      (w.result === 'siap' ? 'Ketiga soal dijawab benar pada percobaan pertama.' : w.result === 'catatan' ? 'Satu topik dicatat untuk diperkuat lewat modul minggu ini.' : 'Dua soal atau lebih belum tepat. Ketua regu akan mengecek praktikmu sebentar sebelum mulai.') + '</span></div>' +
+      '<ul class="result-list">' + c.plan.map(function (p) {
+        var bad = c.wrong.indexOf(p[0]) > -1;
+        return '<li><span class="mk ' + (bad ? 'n' : 'y') + '">' + (bad ? '!' : '✓') + '</span><span><b>' + esc(Q[p[0]].topic) + '</b><br><span style="color:var(--muted)">' + (bad ? 'Benar setelah video penguatan' : 'Benar') + '</span></span></li>';
+      }).join('') + '</ul>' +
+      '<div class="card" style="font-size:13.5px">Hasil ini sudah masuk ke <b>Papan Kesiapan</b> kepala dapur, lengkap dengan topik yang perlu diperkuat.</div>' +
+      '<button class="btn btn-primary full" data-a="gotoboard">Lihat di Papan Kesiapan</button><button class="btn full" data-a="scr" data-v="home">Kembali ke beranda</button></div>';
+  }
+
+  function scrModules() {
+    var w = S.workers[S.persona];
+    return '<div class="sc"><div><span class="eyebrow">Modul mikro</span><div class="mod-prog"><b class="num">' + w.mods.length + '</b><span style="color:var(--muted)">dari 12 modul lulus</span></div><div class="bar" style="margin-top:6px"><i style="width:' + (w.mods.length / 12 * 100) + '%"></i></div></div>' +
+      '<div class="mod-list">' + MODULES.map(function (m) {
+        var on = w.mods.indexOf(m.n) > -1, due = w.due.indexOf(m.n) > -1;
+        var st = due ? '<span class="pill p-warn">Penyegaran</span>' : on ? '<span class="pill p-ok">Lulus</span>' : '<span class="pill p-idle">Belum</span>';
+        return '<button class="row-link" data-a="openmod" data-v="' + m.n + '"><span class="ico ' + (due ? 'warn' : '') + '">' + m.n + '</span><span style="min-width:0"><b>' + esc(m.t) + '</b><small>' + esc(m.r) + ' · ' + m.min + ' menit</small></span><span style="margin-left:auto">' + st + '</span></button>';
+      }).join('') + '</div></div>';
+  }
+
+  function scrModule() {
+    var m = MODULES[S.modOpen - 1];
+    var key = null; Object.keys(Q).forEach(function (k) { if (!key && Q[k].mod === m.n) key = k; });
+    var h = '<div class="sc"><div class="q-top"><button class="x" data-a="scr" data-v="modules" aria-label="Tutup">×</button><div style="min-width:0"><div class="eyebrow">Modul ' + m.n + ' · ' + m.min + ' menit</div><b style="font-size:15px">' + esc(m.t) + '</b></div></div>';
+    if (S.slide < 3) {
+      h += '<div class="slide"><span class="n">' + (S.slide + 1) + '</span><p>' + esc(m.pts[S.slide]) + '</p></div>' +
+        (key ? '<div class="illus">' + illus(Q[key].ill) + '</div>' : '') +
+        '<div class="dots">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i === S.slide ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
+        '<button class="btn btn-primary full" data-a="slide">' + (S.slide < 2 ? 'Lanjut' : 'Kuis singkat') + '</button>';
+    } else {
+      var q = key ? Q[key] : { q: 'Benar atau salah: ' + m.pts[1], opts: ['Benar', 'Salah'], ok: 0, why: m.pts[1] };
+      h += '<div class="dots">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i === 3 ? 'on' : '') + '"></i>'; }).join('') + '</div><div class="q-text">' + esc(q.q) + '</div><div class="opts">' +
+        q.opts.map(function (o, i) {
+          var cls = ''; if (S.quizPick !== null) { if (i === q.ok) cls = 'right'; else if (i === S.quizPick) cls = 'wrong'; }
+          return '<button class="opt ' + cls + '" data-a="quiz" data-v="' + i + '"' + (S.quizPick !== null ? ' disabled' : '') + '>' + esc(o) + '</button>';
+        }).join('') + '</div>';
+      if (S.quizPick !== null) {
+        var ok = S.quizPick === q.ok;
+        h += '<div class="feedback ' + (ok ? 'ok' : 'no') + '"><b>' + (ok ? 'Modul lulus' : 'Belum tepat') + '</b><p>' + esc(q.why) + '</p>' +
+          (ok ? '<button class="btn btn-primary full" data-a="scr" data-v="modules">Kembali ke daftar modul</button>' : '<button class="btn btn-primary full" data-a="modagain">Ulangi materi</button>') + '</div>';
+      }
+    }
+    return h + '</div>';
+  }
+
+  function cardBlock(id) {
+    var r = rosterById(id) || bankById(id), w = S.workers[id];
+    var role = r.role || r.roles.join(', ');
+    return '<div class="idcard"><div class="hd"><span>Kartu Kompetensi</span><span>Juru Dapur</span></div><div class="who"><div class="avatar">' + initials(r.name) + '</div><div><b>' + esc(r.name) + '</b><span>' + esc(role) + '</span></div></div>' +
+      '<div class="ft"><div style="font-size:12.5px;display:grid;gap:3px"><span class="mono" style="font-size:14px">' + id + '</span><span>' + (w ? w.mods.length : r.mods || r.modsN) + ' dari 12 modul lulus</span><span style="opacity:.85">Aktif · penyegaran berkala</span></div><div class="qr">' + qrSvg('https://jurudapur.id/k/' + id) + '</div></div></div>';
+  }
+
+  function scrCard() {
+    var w = S.workers[S.persona], d = DEMO[S.persona];
+    return '<div class="sc">' + cardBlock(S.persona) +
+      '<div class="card"><h4>Modul lulus</h4><div class="mods-grid">' + MODULES.map(function (m) {
+        var due = w.due.indexOf(m.n) > -1, on = w.mods.indexOf(m.n) > -1;
+        return '<span class="' + (due ? 'due' : on ? 'on' : '') + '" title="' + esc(m.t) + '">' + m.n + '</span>';
+      }).join('') + '</div><div class="legend"><span><i style="background:var(--accent)"></i>Lulus</span><span><i style="background:var(--warn-bg);outline:1.5px solid var(--warn-line)"></i>Penyegaran</span><span><i style="background:var(--surface-2)"></i>Belum</span></div></div>' +
+      '<div class="card"><h4>Praktik terverifikasi pendamping</h4><ul class="prac">' + d.prac.map(function (p) { return '<li><span>' + esc(p[0]) + '<small>' + esc(p[1]) + ' · SPPG Contoh 01</small></span></li>'; }).join('') + '</ul></div>' +
+      '<button class="btn btn-primary full" data-a="showcard">Tunjukkan ke kepala dapur</button></div>';
+  }
+
+  // ===== papan kesiapan =====
+  function viewBoard() {
+    S.visitedBoard = true;
+    var rd = readiness(), c = counts();
+    var dueCount = 6 + Object.keys(S.workers).filter(function (k) { return S.workers[k].due.length; }).length;
+    var head = '<div class="view-head"><div><span class="eyebrow">SPPG Contoh 01 · Kec. Lowokwaru, Kota Malang</span><h1>Papan Kesiapan Dapur</h1><p>Kamis, 22 Oktober 2026 · Shift pagi mulai 04.30 · Cek ditutup 04.45</p></div>' +
+      '<button class="btn btn-primary" data-a="rekap">' + IC.download + 'Unduh Bukti Pembinaan</button></div>';
+    var kpis = '<div class="kpis"><div class="kpi hero"><span class="l">Kesiapan shift pagi</span><span class="v">' + rd.pct + '%</span><span class="l">' + rd.ok + ' dari ' + rd.total + ' pekerja siap · target 85%</span><div class="meter"><i style="width:' + rd.pct + '%"></i><em style="left:85%"></em></div></div>' +
+      '<div class="kpi"><span class="v">' + (c.semua - c.belum) + '<span style="font-size:18px;color:var(--muted)">/' + c.semua + '</span></span><span class="l">Sudah Cek Siap Shift</span></div>' +
+      '<div class="kpi ' + (c.dampingi ? 'warn' : '') + '"><span class="v">' + c.dampingi + '</span><span class="l">Perlu didampingi ketua regu</span></div>' +
+      '<div class="kpi"><span class="v">' + dueCount + '</span><span class="l">Modul penyegaran jatuh tempo minggu ini</span></div></div>';
+
+    var list = ROSTER.filter(function (w) {
+      if (S.filter === 'semua') return true;
+      if (S.filter === 'siap') return w.status === 'siap' || w.status === 'catatan' || w.status === 'didampingi';
+      return w.status === S.filter;
+    });
+    var order = { dampingi: 0, belum: 1, catatan: 2, didampingi: 3, siap: 4 };
+    list.sort(function (a, b) { return order[a.status] - order[b.status]; });
+    var chips = [['semua', 'Semua', c.semua], ['dampingi', 'Perlu didampingi', c.dampingi], ['belum', 'Belum cek', c.belum], ['siap', 'Siap', c.siap]];
+    var table = '<div class="panel"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline"><div><h3>Status pekerja shift ini</h3><p class="sub">Siap berarti lolos Cek Siap Shift atau sudah didampingi ketua regu.</p></div></div>' +
+      '<div class="toolbar">' + chips.map(function (ch) { return '<button class="fchip" data-a="filter" data-v="' + ch[0] + '" aria-pressed="' + (S.filter === ch[0]) + '">' + ch[1] + '<span class="c">' + ch[2] + '</span></button>'; }).join('') + '</div>' +
+      '<div class="tbl-wrap"><table><thead><tr><th>Pekerja</th><th>Status</th><th>Catatan</th><th>Modul</th><th>Streak</th><th></th></tr></thead><tbody>' +
+      list.map(function (w) {
+        var p = { siap: ['p-ok', 'Siap'], catatan: ['p-ok', 'Siap, ada catatan'], didampingi: ['p-ok', 'Sudah didampingi'], dampingi: ['p-warn', 'Perlu didampingi'], belum: ['p-idle', 'Belum cek'] }[w.status];
+        var act = w.status === 'dampingi' ? '<button class="btn btn-sm" data-a="coached" data-v="' + w.id + '">Tandai sudah didampingi</button>' : w.status === 'belum' ? '<button class="btn btn-sm" data-a="remind" data-v="' + w.id + '">Kirim pengingat WA</button>' : '';
+        return '<tr id="row-' + w.id + '"><td><div class="nm">' + esc(w.name) + (w.demo ? ' <span class="chip" style="font-size:10.5px">demo</span>' : '') + '</div><div class="rl">' + esc(w.role) + '</div></td><td><span class="pill ' + p[0] + '">' + p[1] + '</span></td><td style="color:var(--muted)">' + esc(w.note || '') + '</td>' +
+          '<td class="num" style="white-space:nowrap"><span class="minibar"><i style="width:' + (w.modsN / 12 * 100) + '%"></i></span>' + (S.workers[w.id] ? S.workers[w.id].mods.length : w.modsN) + '/12</td><td class="num">' + w.streak + ' hari</td><td style="text-align:right;white-space:nowrap">' + act + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+
+    var side = '<div class="stack"><div class="panel chart"><h3>Tren kesiapan 30 hari</h3><p class="sub">Persentase pekerja siap pada shift pagi, garis putus target 85%.</p>' + trendSvg(rd.pct) + '</div>' +
+      '<div class="panel"><h3>Topik paling sering salah</h3><p class="sub">Tujuh hari terakhir. Jadi fokus pendampingan bulan ini.</p>' + topicBars() + '</div>' +
+      '<div class="panel visit"><h3>Pendampingan lapangan</h3><div><div class="eyebrow">Kunjungan berikutnya</div><div class="when">Selasa, 28 Oktober 2026 · 07.00</div><p class="sub" style="margin:2px 0 0">Fokus: kontaminasi silang untuk tim persiapan, observasi praktik 12 pekerja.</p></div>' +
+      '<div><div class="eyebrow">Skor praktik rata-rata (observasi)</div><div class="score"><span class="from num">52</span><span style="color:var(--muted)">→</span><span class="to num">79</span><span class="pill p-ok">+27 poin sejak awal pilot</span></div></div></div></div>';
+
+    return '<main class="wrap">' + head + kpis + '<div class="board">' + table + side + '</div>' + foot() + '</main>';
+  }
+
+  function trendSvg(today) {
+    var data = TREND.concat([today]), W = 520, H = 220, l = 34, r = 14, t = 12, b = 28;
+    var x = function (i) { return l + i * (W - l - r) / (data.length - 1); };
+    var y = function (v) { return t + (100 - v) * (H - t - b) / 40; };
+    var g = '';
+    [60, 70, 80, 90, 100].forEach(function (v) { g += '<line x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '" style="stroke:var(--line)" stroke-width="1"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>'; });
+    var lbl = [[0, '23 Sep'], [7, '30 Sep'], [14, '7 Okt'], [21, '14 Okt'], [29, '22 Okt']];
+    lbl.forEach(function (p) { g += '<text x="' + x(p[0]) + '" y="' + (H - 8) + '" text-anchor="' + (p[0] === 29 ? 'end' : p[0] === 0 ? 'start' : 'middle') + '">' + p[1] + '</text>'; });
+    var pts = data.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); });
+    var area = 'M' + x(0) + ',' + y(60) + ' L' + pts.join(' L') + ' L' + x(data.length - 1) + ',' + y(60) + 'Z';
+    var last = data.length - 1;
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Tren kesiapan 30 hari, naik dari 71 persen menjadi ' + today + ' persen">' + g +
+      '<path d="' + area + '" style="fill:var(--accent-soft)" opacity=".8"/>' +
+      '<line x1="' + l + '" x2="' + (W - r) + '" y1="' + y(85) + '" y2="' + y(85) + '" style="stroke:var(--warn)" stroke-width="1.5" stroke-dasharray="5 5"/>' +
+      '<polyline points="' + pts.join(' ') + '" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>' +
+      '<circle cx="' + x(last) + '" cy="' + y(data[last]) + '" r="5" style="fill:var(--accent);stroke:var(--surface)" stroke-width="2"/>' +
+      '<text x="' + (x(last) - 8) + '" y="' + (y(data[last]) - 10) + '" text-anchor="end" style="fill:var(--accent-strong);font-weight:700;font-size:12px">' + today + '% hari ini</text></svg>';
+  }
+
+  function topicBars() {
+    var arr = Object.keys(TOPICS).map(function (k) { return [k, TOPICS[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 5);
+    var max = arr[0][1];
+    return arr.map(function (a) { return '<div class="topic"><span>' + esc(a[0]) + '</span><span class="num" style="font-weight:700">' + a[1] + ' kali</span><div class="tb"><i style="width:' + (a[1] / max * 100) + '%"></i></div></div>'; }).join('');
+  }
+
+  function rekapModal() {
+    var rows = ROSTER.slice(0, 12);
+    return '<div class="modal" data-a="closerekap-bg"><div class="modal-in"><div class="modal-bar"><span>Pratinjau rekap. Di aplikasi asli, tombol ini mengunduh PDF siap cetak.</span><button class="btn btn-sm" data-a="closerekap">Tutup pratinjau</button></div>' +
+      '<div class="paper"><div class="kop"><div><h2>Rekap Bukti Pembinaan Tenaga Dapur</h2><div>SPPG Contoh 01 · Kec. Lowokwaru, Kota Malang</div></div><div style="text-align:right"><b>Periode</b><br>1 sampai 22 Oktober 2026<br>No. JD/SPPG01/2026/10</div></div>' +
+      '<div class="meta"><div>Pekerja terdaftar<b>40 orang</b></div><div>Kepatuhan Cek Siap Shift<b>91%</b></div><div>Modul selesai bulan ini<b>87 modul</b></div><div>Skor praktik rata-rata<b>79 (awal 52)</b></div></div>' +
+      '<div class="paper-scroll"><table><thead><tr><th>No</th><th>Nama</th><th>Peran</th><th>Hadir cek</th><th>Modul lulus</th><th>Skor observasi</th></tr></thead><tbody>' +
+      rows.map(function (w, i) { return '<tr><td>' + (i + 1) + '</td><td>' + esc(w.name) + '</td><td>' + esc(w.role) + '</td><td class="num">' + w.att + '/16 hari</td><td class="num">' + (S.workers[w.id] ? S.workers[w.id].mods.length : w.modsN) + '/12</td><td class="num">' + w.obs + '</td></tr>'; }).join('') +
+      '<tr><td colspan="6" style="color:#666;font-style:italic">28 pekerja lainnya tercantum pada halaman berikutnya</td></tr></tbody></table></div>' +
+      '<p style="margin-top:14px"><b>Kunjungan pendamping lapangan:</b> 7 Oktober 2026 (observasi 14 pekerja), 21 Oktober 2026 (observasi 12 pekerja). Topik penguatan: kontaminasi silang, waktu tunggu lauk.</p>' +
+      '<div class="sign"><div>Pendamping Lapangan Juru Dapur<div class="ln"></div>(nama terang)</div><div>Kepala SPPG Contoh 01<div class="ln"></div>(nama terang)</div></div>' +
+      '<p class="note">Dokumen ini adalah catatan pembinaan internal untuk mendukung inspeksi dan audit. Dokumen ini tidak menggantikan sertifikat pelatihan keamanan pangan resmi maupun SLHS.</p></div></div></div>';
+  }
+
+  // ===== bank tenaga =====
+  function viewBank() {
+    var b = S.bank;
+    var list = BANK.filter(function (c) {
+      if (b.kec !== 'semua' && c.kec !== b.kec) return false;
+      if (b.role !== 'semua' && c.roles.join(',').indexOf(b.role) < 0) return false;
+      if (b.full && c.mods < 12) return false;
+      return true;
+    });
+    var head = '<div class="view-head"><div><span class="eyebrow">Malang Raya</span><h1>Bank Tenaga Terlatih</h1><p>Warga yang sudah lulus pembinaan Juru Dapur dan siap ditempatkan saat dapur kekurangan orang. Kartu Kompetensi mereka bisa langsung diperiksa.</p></div></div>' +
+      '<div class="bank-head"><div class="kpi"><span class="v">' + BANK.length + '</span><span class="l">Orang siap ditempatkan minggu ini</span></div><div class="kpi"><span class="v">' + rp(300000) + '</span><span class="l">Biaya rujukan per penempatan, dibayar dapur</span></div><div class="kpi"><span class="v">0%</span><span class="l">Potongan dari honor pekerja</span></div></div>';
+    var filters = '<div class="filters"><div class="field"><label for="fk">Kecamatan</label><select id="fk" data-a="bkec"><option value="semua">Semua kecamatan</option>' + KEC.map(function (k) { return '<option ' + (b.kec === k ? 'selected' : '') + '>' + k + '</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label for="fr">Peran</label><select id="fr" data-a="brole"><option value="semua">Semua peran</option>' + ['Tim persiapan', 'Juru masak', 'Pemorsi', 'Pencucian', 'Distribusi'].map(function (k) { return '<option ' + (b.role === k ? 'selected' : '') + '>' + k + '</option>'; }).join('') + '</select></div>' +
+      '<button class="fchip" style="padding:10px 14px" data-a="bfull" aria-pressed="' + b.full + '">Hanya yang lulus 12 modul</button></div>';
+    var cards = '<div class="cands">' + (list.length ? list.map(function (c) {
+      var foot;
+      if (b.sent[c.id]) foot = '<div class="sent">' + IC.check + 'Permintaan terkirim. Tim Juru Dapur menghubungi kepala dapur dalam 1 x 24 jam.</div>';
+      else if (b.confirm === c.id) foot = '<div class="confirm"><span>Ajukan <b>' + esc(c.name) + '</b> untuk SPPG Contoh 01? Biaya rujukan ' + rp(300000) + ' dibayar dapur. Hubungan kerja langsung antara pekerja dan pengelola SPPG.</span><div class="btns"><button class="btn btn-primary btn-sm" data-a="bsend" data-v="' + c.id + '">Kirim permintaan</button><button class="btn btn-sm" data-a="bcancel">Batal</button></div></div>';
+      else foot = '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" data-a="bask" data-v="' + c.id + '">Ajukan penempatan</button><button class="btn btn-sm" data-a="bverify" data-v="' + c.id + '">Lihat Kartu</button></div>';
+      return '<article class="cand"><div class="top-row"><div class="avatar">' + initials(c.name) + '</div><div><b>' + esc(c.name) + '</b><span class="loc">Kec. ' + c.kec + ' · <span class="mono">' + c.id + '</span></span></div></div>' +
+        '<div class="tags">' + c.roles.map(function (r) { return '<span class="tag">' + esc(r) + '</span>'; }).join('') + '</div>' +
+        '<div style="font-size:13px;color:var(--muted)">' + esc(c.src) + '</div>' +
+        '<div class="stat-line"><span>Modul <b class="num">' + c.mods + '/12</b></span><span>Praktik <b class="num">' + c.prac + '</b></span><span class="pill p-ok" style="font-size:11.5px">' + esc(c.avail) + '</span></div>' + foot + '</article>';
+    }).join('') : '<div class="empty">Belum ada tenaga terlatih dengan kriteria ini. Coba ubah kecamatan atau peran.</div>') + '</div>';
+    return '<main class="wrap">' + head + filters + cards + foot() + '</main>';
+  }
+
+  // ===== verifikasi kartu =====
+  function viewVerify() {
+    var id = S.verifyId, r = rosterById(id), bk = bankById(id), w = S.workers[id];
+    var res;
+    if (!r && !bk) {
+      res = '<div class="panel empty">Kartu dengan nomor <span class="mono">' + esc(id) + '</span> tidak ditemukan. Periksa lagi nomor di bawah QR, formatnya JD-MLG-0000.</div>';
+    } else {
+      var name = (r || bk).name, role = r ? r.role : bk.roles.join(', ');
+      var mods = w ? w.mods : null, modsN = w ? w.mods.length : (r ? r.modsN : bk.mods);
+      if (!mods) { mods = []; for (var i = 1; i <= modsN; i++) mods.push(i); }
+      var due = w ? w.due : [];
+      var prac = w ? DEMO[id].prac : [['Cuci tangan enam langkah', '2 Okt 2026'], ['Memisahkan alat mentah dan matang', '2 Okt 2026'], ['Mencuci dan menyanitasi ompreng', '9 Okt 2026']].slice(0, bk ? Math.min(3, bk.prac) : 2);
+      var comp = r ? Math.round(r.att / 16 * 100) : 94;
+      comp = Math.min(comp, 100);
+      res = '<div class="vres"><div class="panel"><div class="vhead"><div class="avatar" style="background:var(--accent-soft);color:var(--accent-strong)">' + initials(name) + '</div><div><span class="pill p-ok">Kartu aktif dan terverifikasi</span><h2 style="margin-top:6px">' + esc(name) + '</h2><div style="color:var(--muted)">' + esc(role) + ' · <span class="mono">' + id + '</span></div></div></div></div>' +
+        '<div class="vgrid"><div class="kpi"><span class="v">' + modsN + '/12</span><span class="l">Modul lulus</span></div><div class="kpi"><span class="v">' + prac.length + '</span><span class="l">Praktik diverifikasi pendamping</span></div><div class="kpi"><span class="v">' + comp + '%</span><span class="l">Kepatuhan Cek Siap Shift 30 hari</span></div></div>' +
+        '<div class="panel"><h3>Modul</h3><p class="sub">Arahkan kursor ke nomor untuk melihat judul modul.</p><div class="mods-grid" style="max-width:420px">' + MODULES.map(function (m) {
+          return '<span class="' + (due.indexOf(m.n) > -1 ? 'due' : mods.indexOf(m.n) > -1 ? 'on' : '') + '" title="' + esc(m.t) + '">' + m.n + '</span>';
+        }).join('') + '</div></div>' +
+        '<div class="panel"><h3>Praktik terverifikasi</h3><ul class="prac" style="margin-top:8px">' + prac.map(function (p) { return '<li><span>' + esc(p[0]) + '<small>' + esc(p[1]) + ' · diverifikasi pendamping lapangan Juru Dapur</small></span></li>'; }).join('') + '</ul></div>' +
+        '<p class="honest">Kartu Kompetensi adalah catatan pembinaan internal Juru Dapur. Kartu ini melengkapi, tidak menggantikan, sertifikat pelatihan keamanan pangan resmi dan SLHS.</p></div>';
+    }
+    var quick = ['JD-MLG-0142', 'JD-MLG-0157', 'JD-MLG-0311', 'JD-MLG-0340'];
+    var left = '<div class="stack"><div class="panel"><h3>Periksa Kartu Kompetensi</h3><p class="sub">Kepala dapur memindai QR di kartu calon pekerja, atau mengetik nomor kartunya.</p>' +
+      '<form data-f="verify" style="display:grid;gap:10px"><div class="field"><label for="vid">Nomor kartu</label><input id="vid" class="mono" value="' + esc(id) + '" autocomplete="off"></div><button class="btn btn-primary" type="submit" style="justify-content:center">Periksa kartu</button></form>' +
+      '<div class="quick"><span style="font-size:12.5px;color:var(--muted);width:100%">Contoh nomor:</span>' + quick.map(function (q) { return '<button class="fchip mono" data-a="vquick" data-v="' + q + '">' + q + '</button>'; }).join('') + '</div></div>' +
+      ((r || bk) ? cardBlock(id) : '') + '</div>';
+    return '<main class="wrap"><div class="view-head"><div><h1>Verifikasi Kartu</h1><p>Pekerja yang pindah dapur membawa kartunya. Pengelola dapur baru tidak perlu melatih dari nol.</p></div></div><div class="verify">' + left + res + '</div>' + foot() + '</main>';
+  }
+
+  function foot() { return '<p class="foot">Prototipe Juru Dapur untuk Bright Impact Business Challenge 2026. Semua nama, nomor, dan angka adalah contoh fiktif.</p>'; }
+
+  // ---------- interaksi ----------
+  var toastTimer = null;
+  function toast(msg) { S.toast = msg; render(); clearTimeout(toastTimer); toastTimer = setTimeout(function () { S.toast = ''; render(); }, 2600); }
+  function setTab(t) {
+    stopVideo();
+    S.tab = t;
+    try { history.replaceState(null, '', '#' + t); } catch (e) {}
+    window.scrollTo(0, 0); render();
+  }
+
+  app.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-a]'); if (!el) return;
+    var a = el.getAttribute('data-a'), v = el.getAttribute('data-v');
+    if (el.tagName === 'SELECT') return;
+    if (a === 'closerekap-bg' && e.target !== el) return;
+    switch (a) {
+      case 'tab': setTab(v); return;
+      case 'persona': stopVideo(); S.persona = v; S.loggedIn = false; S.scanning = false; S.screen = 'home'; S.check = null; break;
+      case 'lang': S.lang = v; break;
+      case 'scan': S.scanning = true; render(); setTimeout(function () { S.scanning = false; S.loggedIn = true; S.screen = 'home'; render(); }, 1300); return;
+      case 'login': S.loggedIn = true; S.screen = 'home'; break;
+      case 'scr': stopVideo(); S.screen = v; S.modOpen = null; if (v === 'card') S.cardSeen = true; break;
+      case 'startcheck': startCheck(); break;
+      case 'quitcheck': S.screen = 'home'; S.check = null; break;
+      case 'answer':
+        var c = S.check, q = Q[c.plan[c.i][0]];
+        c.picked = +v;
+        if (+v !== q.ok && c.wrong.indexOf(c.plan[c.i][0]) < 0) c.wrong.push(c.plan[c.i][0]);
+        break;
+      case 'next':
+        if (S.check.i < 2) { S.check.i++; S.check.picked = null; S.check.retry = false; }
+        else finishCheck();
+        break;
+      case 'video': S.screen = 'video'; render(); runVideo(); return;
+      case 'skipvideo':
+        stopVideo();
+        tick(60, MODULES[Q[S.check.plan[S.check.i][0]].mod - 1]); return;
+      case 'retry': stopVideo(); S.check.picked = null; S.check.retry = true; S.screen = 'check'; break;
+      case 'gotoboard': S.flashId = S.persona; S.filter = 'semua'; setTab('papan'); if (S.flashId) render(); return;
+      case 'openmod': S.modOpen = +v; S.slide = 0; S.quizPick = null; S.screen = 'module'; break;
+      case 'slide': S.slide++; break;
+      case 'quiz':
+        S.quizPick = +v;
+        var m = MODULES[S.modOpen - 1], key = null;
+        Object.keys(Q).forEach(function (k) { if (!key && Q[k].mod === m.n) key = k; });
+        var okIdx = key ? Q[key].ok : 0;
+        if (+v === okIdx) {
+          var w = S.workers[S.persona];
+          if (w.mods.indexOf(m.n) < 0) w.mods.push(m.n);
+          w.due = w.due.filter(function (x) { return x !== m.n; });
+          me().modsN = w.mods.length;
+        }
+        break;
+      case 'modagain': S.slide = 0; S.quizPick = null; break;
+      case 'showcard': S.verifyId = S.persona; setTab('kartu'); return;
+      case 'filter': S.filter = v; break;
+      case 'coached': var rw = rosterById(v); rw.status = 'didampingi'; S.flashId = v; toast('Ditandai sudah didampingi: ' + rw.name); return;
+      case 'remind': toast('Pengingat WhatsApp terkirim ke ' + rosterById(v).name + ' (simulasi)'); return;
+      case 'rekap': S.rekap = true; break;
+      case 'closerekap': case 'closerekap-bg': S.rekap = false; break;
+      case 'bfull': S.bank.full = !S.bank.full; break;
+      case 'bask': S.bank.confirm = v; break;
+      case 'bcancel': S.bank.confirm = null; break;
+      case 'bsend': S.bank.sent[v] = true; S.bank.confirm = null; break;
+      case 'bverify': S.verifyId = v; setTab('kartu'); return;
+      case 'vquick': S.verifyId = v; break;
+      default: return;
+    }
+    render();
+  });
+  app.addEventListener('change', function (e) {
+    var a = e.target.getAttribute('data-a');
+    if (a === 'bkec') { S.bank.kec = e.target.value; render(); }
+    if (a === 'brole') { S.bank.role = e.target.value; render(); }
+  });
+  app.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (e.target.getAttribute('data-f') === 'verify') { S.verifyId = document.getElementById('vid').value.trim().toUpperCase(); render(); }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.rekap) { S.rekap = false; render(); } });
+
+  var h0 = (location.hash || '').replace('#', '');
+  if (['pekerja', 'papan', 'bank', 'kartu'].indexOf(h0) > -1) S.tab = h0;
+  render();
+})();
+</script>
+
+</body>
+</html>
